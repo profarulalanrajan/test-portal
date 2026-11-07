@@ -67,6 +67,11 @@
   .topics { color: var(--muted); font-size: 15px; margin: -18px 0 24px; }
   .qmarks { float: right; font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; }
   .skel { color: var(--muted); padding: 60px 0; }
+  .storybtn { font: inherit; font-size: 14px; font-weight: 700; color: var(--indigo); background: var(--indigo-soft);
+    border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  .storybtn:hover { background: #e2e5f8; }
+  .card.story-card { max-width: 640px; max-height: 85vh; overflow-y: auto; }
+  .card.story-card .story { font-size: 17px; }
   .note { color: var(--muted); font-size: 14px; margin-top: 12px; }
 
   /* quiz screen */
@@ -189,7 +194,8 @@
     <div class="bar-in">
       <div class="who" id="who"></div>
       <div class="spacer"></div>
-      <div class="strikes" id="strikes">Warnings <b id="strike-n">0</b> / <span id="strike-max">3</span></div>
+      <button class="storybtn hidden" id="btn-story" type="button">Story</button>
+      <div class="strikes" id="strikes">Warnings <b id="strike-n">0</b></div>
       <div class="timer" id="timer">30:00</div>
     </div>
     <div class="palette" id="palette"></div>
@@ -211,9 +217,9 @@
 <section id="screen-done" class="wrap hidden">
   <div class="done">
     <div class="eyebrow" id="done-eyebrow">Test complete</div>
-    <h1>Your answers are in</h1>
+    <h1 id="done-title">Your answers are in</h1>
     <div id="done-score" class="hidden"><div class="score" id="score-val"></div><div class="meta" id="score-of"></div></div>
-    <div class="story"><p>Your answers have been submitted and recorded. Results will be shared by your instructor.</p></div>
+    <div class="story" id="done-msg"><p>Your answers have been submitted and recorded. Results will be shared by your instructor.</p></div>
     <p class="note" id="done-id"></p>
     <p class="note">You can close this window now. <a href="./">Back to all tests</a></p>
   </div>
@@ -222,10 +228,18 @@
 <!-- ============ OVERLAYS ============ -->
 <div class="overlay hidden" id="ov-warn">
   <div class="card warn">
-    <h3 id="warn-title">Warning 1 of 3</h3>
+    <h3 id="warn-title">Warning 1</h3>
     <p id="warn-text">You left the quiz window. This has been recorded.</p>
-    <p><b>On the third violation your test is submitted automatically.</b></p>
+    <p><b>Every time you leave the test is reported to your instructor, along with which question you were on and how long you were away.</b></p>
     <div class="actions"><button class="btn btn-primary" id="btn-resume">Return to full screen and continue</button></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="ov-story">
+  <div class="card story-card">
+    <h3 id="story-title">The story so far</h3>
+    <div class="story" id="story-body"></div>
+    <div class="actions"><button class="btn btn-primary" id="btn-story-close">Back to the test</button></div>
   </div>
 </div>
 
@@ -258,7 +272,7 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
 
   var S = {
     token: null, name: '', usn: '', questions: [], answers: {}, idx: 0,
-    endsAt: 0, offset: 0, strikes: 0, maxStrikes: 3,
+    endsAt: 0, offset: 0, strikes: 0,
     active: false, submitting: false, lastStrikeAt: 0, armedAt: 0,
     timerId: null, saveTimer: null, warned5: false,
     track: { q: {}, order: [] },   // per-question time, visits, answer changes, leaves, time away, review flag
@@ -270,6 +284,7 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
   var $ = function (id) { return document.getElementById(id); };
   var TEST_ID = new URLSearchParams(location.search).get('id') || '';
   var TEST = null;
+  var TH = { qword: 'Question', start: 'Start test', next: 'Next' };   // replaced by the test's own wording, if any
   var fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 
   /* ---------- server calls ---------- */
@@ -373,6 +388,7 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     return new Date(ms).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
   }
   function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function loadInfo() {
     if (!TEST_ID) { location.replace('./'); return; }
     if (BACKEND_URL.indexOf('http') !== 0) return failStart('This test portal has not been connected to its server yet.');
@@ -387,6 +403,16 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
   }
   function showInfo(t) {
     TEST = t;
+    var th = t.theme || {};
+    TH = { qword: th.qword || 'Question', start: th.start || 'Start test', next: th.next || 'Next',
+           endTitle: th.endTitle || '', endMsg: th.endMsg || '' };
+    $('btn-start').textContent = TH.start;
+    $('btn-next').textContent = TH.next;
+    if (t.intro) {
+      $('story-body').innerHTML = t.intro;
+      $('story-title').textContent = t.title;
+      $('btn-story').classList.remove('hidden');
+    }
     document.title = t.title + (t.course ? ' · ' + t.course : '');
     $('t-eyebrow').textContent = (t.course ? t.course + ' · ' : '') + 'Online test';
     $('t-title').textContent = t.title;
@@ -394,8 +420,8 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     $('t-topics').textContent = t.topics || '';
     $('t-intro').innerHTML = t.intro || '';
     typeset($('t-intro'));
-    $('rule-strikes').innerHTML = 'You get ' + plural(t.maxViolations - 1, 'warning') +
-      '. Violation number ' + t.maxViolations + ' <b>submits your test automatically</b>, with whatever you have answered.';
+    $('rule-strikes').innerHTML = 'Each violation shows a warning and is <b>reported to your instructor</b>, along with the question ' +
+      'you were on and how long you were away. Repeated violations get your test <b>flagged for review</b>.';
     $('rule-timer').textContent = 'The ' + t.duration + '-minute timer starts when you begin and cannot be paused. Reloading the page does not reset it.' +
       (t.closesAt ? ' The test closes for everyone at ' + fmtWhen(t.closesAt) + '.' : '');
     if (!t.needsCode) $('code-field').classList.add('hidden');
@@ -430,13 +456,13 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     api({ action: 'start', testId: TEST_ID, name: name, usn: usn, code: code }, 4).then(function (res) {
       if (!res || !res.ok) {
         exitFs();
-        btn.disabled = false; btn.textContent = 'Start test';
+        btn.disabled = false; btn.textContent = TH.start;
         return showStartError((res && res.error) || 'Could not start. Please try again.');
       }
       beginQuiz(res);
     }).catch(function () {
       exitFs();
-      btn.disabled = false; btn.textContent = 'Start test';
+      btn.disabled = false; btn.textContent = TH.start;
       showStartError('Could not reach the server. Check your internet connection and try again.');
     });
   });
@@ -445,7 +471,7 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
   function beginQuiz(res) {
     S.token = res.token; S.name = res.name; S.usn = res.usn;
     S.questions = res.questions; S.endsAt = res.endsAt; S.offset = res.serverNow - Date.now();
-    S.maxStrikes = res.maxViolations || 3; S.strikes = res.violations || 0;
+    S.strikes = res.violations || 0;
     var local = readLocal();
     S.answers = Object.assign({}, res.saved || {}, (local && local.answers) || {});
     var t = (local && local.track) || res.tracking || {};
@@ -456,7 +482,6 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     $('who').innerHTML = '';
     $('who').appendChild(document.createTextNode(S.name + ' '));
     var sp = document.createElement('span'); sp.textContent = S.usn; $('who').appendChild(sp);
-    $('strike-max').textContent = S.maxStrikes;
     buildWatermark();
     buildPalette();
 
@@ -472,7 +497,6 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     tick(); S.timerId = setInterval(tick, 250);
 
     if (!fsSupported) fireAndForget({ action: 'event', token: S.token, type: 'no-fullscreen', detail: navigator.userAgent.slice(0, 150) });
-    if (S.strikes >= S.maxStrikes) submit('auto: violation limit reached');
   }
 
   function buildWatermark() {
@@ -486,7 +510,7 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     var p = $('palette'); p.innerHTML = '';
     S.questions.forEach(function (q, i) {
       var b = document.createElement('button');
-      b.className = 'pal'; b.textContent = i + 1; b.title = 'Question ' + (i + 1);
+      b.className = 'pal'; b.textContent = i + 1; b.title = TH.qword + ' ' + (i + 1);
       b.addEventListener('click', function () { go(i); });
       p.appendChild(b);
     });
@@ -504,7 +528,7 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     var q = S.questions[S.idx];
     var w = $('qwrap');
     var mk = q.marks === undefined ? 1 : q.marks;
-    var html = '<div class="qnum">Question ' + (S.idx + 1) + ' of ' + S.questions.length +
+    var html = '<div class="qnum">' + esc(TH.qword) + ' ' + (S.idx + 1) + ' of ' + S.questions.length +
       '<span class="qmarks">' + plural(mk, 'mark') + '</span></div>' +
       (q.title ? '<h2 class="qtitle">' + q.title + '</h2>' : '<div style="height:12px"></div>') +
       '<div class="qstory">' + q.story + '</div>' +
@@ -596,6 +620,8 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     setAnswer(q.id, '');
     render();
   });
+  $('btn-story').addEventListener('click', function () { $('ov-story').classList.remove('hidden'); typeset($('story-body')); });
+  $('btn-story-close').addEventListener('click', function () { $('ov-story').classList.add('hidden'); });
   $('btn-mark').addEventListener('click', function () {
     var t = tq(curId());
     t.flag = !t.flag;
@@ -626,13 +652,12 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     S.lastStrikeAt = now;
     S.strikes++;
     fireAndForget({ action: 'event', token: S.token, type: type, q: (S.away && S.away.q) || curId(),
-      detail: 'Warning ' + S.strikes + ' of ' + S.maxStrikes });
+      detail: 'Warning ' + S.strikes });
     saveRemote();
     updateStrikes();
-    if (S.strikes >= S.maxStrikes) { submit('auto: violation limit reached'); return; }
-    var what = { 'tab-hidden': 'You switched away from the quiz tab.', 'window-blur': 'You clicked or switched outside the quiz window.',
-                 'fullscreen-exit': 'You left full screen.' }[type] || 'You left the quiz.';
-    $('warn-title').textContent = 'Warning ' + S.strikes + ' of ' + S.maxStrikes;
+    var what = { 'tab-hidden': 'You switched away from the test tab.', 'window-blur': 'You clicked or switched outside the test window.',
+                 'fullscreen-exit': 'You left full screen.' }[type] || 'You left the test.';
+    $('warn-title').textContent = 'Warning ' + S.strikes;
     $('warn-text').textContent = what + ' This has been recorded and reported to your instructor.';
     $('ov-warn').classList.remove('hidden');
   }
@@ -685,11 +710,12 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     var missing = [];
     S.questions.forEach(function (q, i) { var a = S.answers[q.id]; if (a === undefined || a === '') missing.push(i + 1); });
     $('submit-summary').textContent = missing.length === 0
-      ? 'You have answered all ' + S.questions.length + ' questions.'
-      : 'You have answered ' + (S.questions.length - missing.length) + ' of ' + S.questions.length + '. Unanswered: question ' + missing.join(', ') + '.';
+      ? 'You have answered all ' + S.questions.length + ' ' + TH.qword.toLowerCase() + 's.'
+      : 'You have answered ' + (S.questions.length - missing.length) + ' of ' + S.questions.length + '. Unanswered: ' +
+        TH.qword.toLowerCase() + ' ' + missing.join(', ') + '.';
     var marked = [];
     S.questions.forEach(function (q, i) { if (S.track.q[q.id] && S.track.q[q.id].flag) marked.push(i + 1); });
-    if (marked.length) $('submit-summary').textContent += ' Marked for review: question ' + marked.join(', ') + '.';
+    if (marked.length) $('submit-summary').textContent += ' Marked for review: ' + TH.qword.toLowerCase() + ' ' + marked.join(', ') + '.';
     $('ov-submit').classList.remove('hidden');
   }
   $('btn-cancel-submit').addEventListener('click', function () { $('ov-submit').classList.add('hidden'); });
@@ -705,8 +731,9 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
     clearTimeout(S.saveTimer);
     $('ov-submit').classList.add('hidden');
     $('ov-warn').classList.add('hidden');
+    $('ov-story').classList.add('hidden');
     showBusy('Submitting your answers', reason.indexOf('time') !== -1 ? 'Time is up. Sending your answers…'
-      : (reason.indexOf('violation') !== -1 ? 'Violation limit reached. Sending your answers…' : 'Sending your answers…'), false);
+      : 'Sending your answers…', false);
     var payload = { action: 'submit', token: S.token, answers: S.answers, tracking: trackSnapshot(), reason: reason };
     var send = function () {
       api(payload, 5).then(function (res) {
@@ -738,6 +765,8 @@ var BACKEND_URL = CFG.BACKEND_URL || '';
       $('done-score').classList.remove('hidden');
     }
     $('done-id').textContent = 'Recorded for ' + S.name + ' (' + S.usn + ').';
+    if (TH.endTitle) $('done-title').textContent = TH.endTitle;
+    if (TH.endMsg) { $('done-msg').innerHTML = TH.endMsg; typeset($('done-msg')); }
     window.scrollTo(0, 0);
   }
 

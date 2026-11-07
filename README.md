@@ -27,7 +27,7 @@ Students' browsers never receive answers.
 |---|---|---|
 | **Tests** | You | One row per test |
 | **Questions** | You | One row per question, linked to its test by Test ID |
-| **Results · ‹Test ID›** | Automatic, one tab per test | One row per student: score, marks and time per question, times left the screen, time away, violations, visit order |
+| **Results · ‹Test ID›** | Automatic, one tab per test | One row per student: score, **Flag**, marks and time per question, times left the screen, time away, violations, visit order |
 | **Question log** | Automatic | One row per student per question: answer, right/wrong, time, visits, answer changes, times left the screen, time away, marked for review |
 | **Sessions**, **Events** | Automatic | Who's writing, deadlines, and a timestamped log of everything, tagged with the question |
 
@@ -47,10 +47,15 @@ The Sheet gets a **Test Portal** menu with: *Check tests for mistakes*, *Apply c
 | Duration (min) | 30 | |
 | Access code | `EIGEN7` | Announce in class. Leave blank for no code |
 | Opens at / Closes at | 10 Nov 2026, 10:00 am | Optional. Before *Opens at* it shows as Upcoming; at *Closes at* everyone is cut off |
-| Max violations | 3 | The last one auto-submits |
+| Flag after violations | 3 | Tests are **never auto-submitted**. Every violation shows a warning and is logged; at this many, the student is marked **FLAGGED** (red) in the results |
 | Grace (s) | 60 | Network slack on the deadline |
 | Show score | yes / no | Show the score right after submitting |
-| Shuffle questions / options | yes / no | Default yes |
+| Shuffle questions | yes / no | Default **no**, which keeps story-based tests in order |
+| Shuffle options | yes / no | Default yes. Answer positions differ per student without breaking the story |
+| Question word | Lock | Optional theme: "Lock 3 of 10" instead of "Question 3 of 10" |
+| Start button | Begin the heist | Optional theme. Default "Start test" |
+| Next button | Next lock | Optional theme. Default "Next" |
+| Ending title / Ending message | Mission over / `<p>The crew slips out…</p>` | Optional theme for the screen after submitting. HTML allowed |
 
 ### Questions tab columns
 
@@ -95,8 +100,11 @@ The Sheet gets a **Test Portal** menu with: *Check tests for mistakes*, *Apply c
 
 ## Updating `Code.gs`
 
-Paste the new version in Apps Script and save, then go to **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**.
-The URL stays the same.
+1. Paste the new version in Apps Script and save.
+2. Run `setup` once. It adds any new columns to the existing tabs without touching your data.
+3. Go to **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. The URL stays the same.
+
+During a test, students can press **Story** at the top to re-read the test's Intro.
 
 ## Notes
 
