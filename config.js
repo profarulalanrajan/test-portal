@@ -3,7 +3,7 @@
  * ------------------------------------------------------------------ */
 window.PORTAL_CONFIG = {
   // Paste the Web App URL from Apps Script (Deploy → Manage deployments) between the quotes.
-  BACKEND_URL: 'https://script.google.com/macros/library/d/133e9Snl2k4f99QK8klYNYhWNgGNJ-natk7sUHdaeIJxPJGTNpWaNer-t/3',
+  BACKEND_URL: 'https://script.google.com/macros/s/AKfycbwAySaesYMEOtRXCAuifq0dSO79xn-2pdvatjY4hE_K0gWkTqUSXNrF-cikJjmM8fPkGg/exec',
 
   // Shown at the top of every page.
   OWNER: 'Prof. Arulalan Rajan',
