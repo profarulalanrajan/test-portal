@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operation Masala Dosa · Linear Algebra Quiz</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/contrib/auto-render.min.js"></script>
+<style>
+  :root {
+    --indigo: #312e81;
+    --indigo-2: #4338ca;
+    --indigo-soft: #eef0fb;
+    --teal: #0f766e;
+    --teal-soft: #e6f4f2;
+    --amber: #b45309;
+    --amber-soft: #fdf3e2;
+    --red: #b42318;
+    --red-soft: #fdecea;
+    --ink: #1f2330;
+    --muted: #5b6070;
+    --line: #dfe2ea;
+    --bg: #ffffff;
+    --serif: Cambria, "Cambria Math", Georgia, "Times New Roman", serif;
+    --sans: Calibri, Carlito, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font-family: var(--sans); font-size: 17px; line-height: 1.55; -webkit-user-select: none; user-select: none; }
+  input { -webkit-user-select: text; user-select: text; }
+  .hidden { display: none !important; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; }
+
+  /* start screen */
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); font-weight: 700; }
+  h1 { font-family: var(--serif); font-size: 38px; line-height: 1.15; margin: 6px 0 4px; color: var(--indigo); font-weight: 700; }
+  .meta { color: var(--muted); margin-bottom: 28px; }
+  .story { font-family: var(--serif); font-size: 18px; line-height: 1.65; }
+  .story p { margin: 0 0 14px; }
+  h2 { font-family: var(--serif); font-size: 21px; color: var(--indigo); margin: 30px 0 10px; }
+  .rules { margin: 0; padding-left: 20px; }
+  .rules li { margin-bottom: 6px; }
+  .rules b { color: var(--indigo); }
+  form { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 24px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  label.field { display: block; font-weight: 700; font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+  label.field input { display: block; width: 100%; margin-top: 6px; padding: 10px 12px; font: inherit; font-size: 17px; color: var(--ink);
+    border: 1px solid #c9cdd8; border-radius: 6px; background: #fff; font-weight: 400; }
+  label.field input:focus { outline: 2px solid var(--indigo-2); outline-offset: 1px; border-color: var(--indigo-2); }
+  .agree { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0 20px; color: var(--ink); }
+  .agree input { margin-top: 5px; width: 17px; height: 17px; accent-color: var(--indigo); }
+  .btn { font: inherit; font-weight: 700; font-size: 16px; border-radius: 6px; padding: 11px 22px; cursor: pointer; border: 1px solid transparent; }
+  .btn-primary { background: var(--indigo); color: #fff; }
+  .btn-primary:hover { background: var(--indigo-2); }
+  .btn-primary:disabled { background: #a5a8c4; cursor: default; }
+  .btn-ghost { background: #fff; color: var(--indigo); border-color: #c9cdd8; }
+  .btn-ghost:hover { border-color: var(--indigo); }
+  .btn-ghost:disabled { color: #a5a8c4; border-color: var(--line); cursor: default; }
+  .btn-amber { background: var(--amber); color: #fff; }
+  .error { color: var(--red); background: var(--red-soft); padding: 10px 14px; border-radius: 6px; margin-top: 16px; }
+  .note { color: var(--muted); font-size: 14px; margin-top: 12px; }
+
+  /* quiz screen */
+  .bar { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--line); z-index: 5; }
+  .bar-in { max-width: 860px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .who { font-weight: 700; color: var(--indigo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+  .who span { color: var(--muted); font-weight: 400; }
+  .spacer { flex: 1; }
+  .strikes { font-size: 14px; color: var(--muted); white-space: nowrap; }
+  .strikes b { color: var(--ink); }
+  .strikes.hot b { color: var(--red); }
+  .timer { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 20px; color: var(--teal); background: var(--teal-soft);
+    padding: 4px 12px; border-radius: 6px; min-width: 84px; text-align: center; }
+  .timer.low { color: var(--amber); background: var(--amber-soft); }
+  .timer.crit { color: var(--red); background: var(--red-soft); }
+  .palette { max-width: 860px; margin: 0 auto; padding: 0 16px 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .pal { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #c9cdd8; background: #fff; color: var(--muted);
+    font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .pal.done { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+  .pal.cur { outline: 2px solid var(--amber); outline-offset: 1px; }
+  .pal { position: relative; }
+  .pal.flag::after { content: ''; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--amber); border: 2px solid #fff; }
+  .mark { background: none; border: none; color: var(--amber); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .mark.on { text-decoration: underline; }
+
+  .qwrap { max-width: 760px; margin: 0 auto; padding: 30px 16px 120px; }
+  .qnum { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); font-weight: 700; }
+  .qtitle { font-family: var(--serif); font-size: 28px; color: var(--indigo); margin: 4px 0 16px; line-height: 1.2; }
+  .qstory { font-family: var(--serif); font-size: 18px; line-height: 1.7; }
+  .qstory b { color: var(--indigo); }
+  .eq { margin: 14px 0; overflow-x: auto; }
+  .qprompt { font-weight: 700; margin: 20px 0 14px; font-size: 18px; }
+  .opts { display: grid; gap: 10px; }
+  .opt { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; background: #fff; }
+  .opt:hover { border-color: #b7bbcc; }
+  .opt.sel { border-color: var(--indigo); background: var(--indigo-soft); }
+  .opt input { width: 18px; height: 18px; accent-color: var(--indigo); margin: 0; flex: none; }
+  .opt .lbl { font-weight: 700; color: var(--muted); width: 18px; flex: none; }
+  .numans { display: flex; align-items: center; gap: 12px; }
+  .numans input { width: 160px; padding: 10px 12px; font: inherit; font-size: 20px; border: 1px solid #c9cdd8; border-radius: 6px; }
+  .numans input:focus { outline: 2px solid var(--indigo-2); outline-offset: 1px; border-color: var(--indigo-2); }
+  .numans .hint { color: var(--muted); font-size: 14px; }
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--line); }
+  .nav-in { max-width: 760px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
+  .clear { background: none; border: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+
+  /* watermark */
+  .wm { position: fixed; inset: -50%; pointer-events: none; z-index: 1; display: flex; flex-wrap: wrap; align-content: flex-start;
+    transform: rotate(-24deg); opacity: .055; font-weight: 700; font-size: 18px; color: var(--indigo); gap: 60px 80px; overflow: hidden; }
+  .wm span { white-space: nowrap; }
+
+  /* overlays */
+  .overlay { position: fixed; inset: 0; background: rgba(255,255,255,.985); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .card { max-width: 520px; width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 28px; background: #fff; box-shadow: 0 10px 30px rgba(31,35,48,.08); }
+  .card h3 { font-family: var(--serif); font-size: 24px; margin: 0 0 10px; color: var(--indigo); }
+  .card.warn h3 { color: var(--red); }
+  .card p { margin: 0 0 14px; }
+  .card .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+
+  .done { text-align: left; }
+  .score { font-family: var(--serif); font-size: 44px; color: var(--teal); margin: 6px 0 0; }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 30px; }
+    .row { grid-template-columns: 1fr; gap: 0; }
+    .qtitle { font-size: 24px; }
+    .who { max-width: 160px; }
+    .strikes { display: none; }
+  }
+  @media print { body { display: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ============ START ============ -->
+<section id="screen-start" class="wrap">
+  <div class="eyebrow">Linear Algebra · Online quiz</div>
+  <h1>Operation Masala Dosa</h1>
+  <div class="meta">10 questions · 10 marks · 30 minutes</div>
+
+  <div class="story">
+    <p>For forty years, Mani Anna's coconut chutney has been the pride of the campus canteen. Last week Prof. Kernel confiscated the secret recipe and locked it in a vault on the third floor of the Maths block, behind ten locks that only linear algebra can open.</p>
+    <p>Your crew is ready. Ananya plans, Ravi hacks, Zoya picks locks and Kiran keeps watch. The Prof's chai break lasts exactly thirty minutes. Every lock you open is worth one mark.</p>
+  </div>
+
+  <h2>Rules of the heist</h2>
+  <ul class="rules">
+    <li>The quiz runs in <b>full screen</b>. Pressing Esc, switching tabs or windows, or opening another app counts as a <b>violation</b>, and every one is recorded.</li>
+    <li>You get two warnings. The <b>third violation submits your test automatically</b>, with whatever you have answered.</li>
+    <li>Copy, paste, right-click and printing are disabled. Your name and USN appear across the screen throughout.</li>
+    <li>Time spent on each question, and every time you leave the quiz window, is recorded.</li>
+    <li>The 30-minute timer starts when you begin and cannot be paused. Reloading the page does not reset it.</li>
+    <li>Answers save as you go. If your browser crashes, reopen this link and enter the same USN to resume.</li>
+    <li>One attempt per USN. Use a laptop or desktop with Chrome, Edge or Firefox.</li>
+  </ul>
+
+  <form id="start-form" autocomplete="off">
+    <div class="row">
+      <label class="field">Full name<input id="f-name" maxlength="80" required></label>
+      <label class="field">USN / Roll number<input id="f-usn" maxlength="30" required></label>
+    </div>
+    <label class="field" style="max-width: 50%; min-width: 220px;">Access code (announced in class)<input id="f-code" maxlength="20" required></label>
+    <label class="agree"><input type="checkbox" id="f-agree"> <span>I will work alone, without notes, other devices, websites or AI tools, and I understand that violations are recorded and reported.</span></label>
+    <button class="btn btn-primary" id="btn-start" type="submit">Begin the heist</button>
+    <div id="start-error" class="error hidden"></div>
+    <div class="note">Starting will switch your browser to full screen.</div>
+  </form>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="screen-quiz" class="hidden">
+  <div class="wm" id="wm" aria-hidden="true"></div>
+  <div class="bar">
+    <div class="bar-in">
+      <div class="who" id="who"></div>
+      <div class="spacer"></div>
+      <div class="strikes" id="strikes">Warnings <b id="strike-n">0</b> / <span id="strike-max">3</span></div>
+      <div class="timer" id="timer">30:00</div>
+    </div>
+    <div class="palette" id="palette"></div>
+  </div>
+  <main class="qwrap" id="qwrap" style="position: relative; z-index: 2;"></main>
+  <div class="nav" style="z-index: 6;">
+    <div class="nav-in">
+      <button class="btn btn-ghost" id="btn-prev">Previous</button>
+      <button class="clear" id="btn-clear">Clear answer</button>
+      <button class="mark" id="btn-mark">Mark for review</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="btn-next">Next lock</button>
+      <button class="btn btn-amber hidden" id="btn-finish">Review and submit</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DONE ============ -->
+<section id="screen-done" class="wrap hidden">
+  <div class="done">
+    <div class="eyebrow">Mission over</div>
+    <h1>Your answers are in</h1>
+    <div id="done-score" class="hidden"><div class="score" id="score-val"></div><div class="meta">marks out of 10</div></div>
+    <div class="story">
+      <p id="done-msg">The crew slips out of the Maths block just as Prof. Kernel's footsteps echo up the stairs. Whether every lock truly opened, the Prof will reveal when results are out.</p>
+    </div>
+    <p class="note" id="done-id"></p>
+    <p class="note">You can close this window now.</p>
+  </div>
+</section>
+
+<!-- ============ OVERLAYS ============ -->
+<div class="overlay hidden" id="ov-warn">
+  <div class="card warn">
+    <h3 id="warn-title">Warning 1 of 3</h3>
+    <p id="warn-text">You left the quiz window. This has been recorded.</p>
+    <p><b>On the third violation your test is submitted automatically.</b></p>
+    <div class="actions"><button class="btn btn-primary" id="btn-resume">Return to full screen and continue</button></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="ov-submit">
+  <div class="card">
+    <h3>Submit your answers?</h3>
+    <p id="submit-summary"></p>
+    <p>You cannot change anything after submitting.</p>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btn-cancel-submit">Keep working</button>
+      <button class="btn btn-amber" id="btn-confirm-submit">Submit now</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="ov-busy">
+  <div class="card">
+    <h3 id="busy-title">Please wait</h3>
+    <p id="busy-text">Contacting the server…</p>
+    <div class="actions hidden" id="busy-actions"><button class="btn btn-primary" id="btn-retry">Try again</button></div>
+  </div>
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+ * Paste the Web App URL from your Apps Script deployment here.
+ * ------------------------------------------------------------------ */
+var BACKEND_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+
+(function () {
+  'use strict';
+
+  var S = {
+    token: null, name: '', usn: '', questions: [], answers: {}, idx: 0,
+    endsAt: 0, offset: 0, strikes: 0, maxStrikes: 3,
+    active: false, submitting: false, lastStrikeAt: 0, armedAt: 0,
+    timerId: null, saveTimer: null, warned5: false,
+    track: { q: {}, order: [] },   // per-question time, visits, answer changes, leaves, time away, review flag
+    curStart: 0,                   // when the clock started on the current question (0 = paused)
+    away: null,                    // { t, q } while the student is outside the quiz window
+    committed: {},                 // last committed answer per question, for counting changes
+    lastHeartbeat: 0, lastBackup: 0
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+
+  /* ---------- server calls ---------- */
+  function api(payload, attempts) {
+    attempts = attempts || 1;
+    var tryOnce = function (n) {
+      return fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+      }).then(function (r) { return r.json(); }).then(function (res) {
+        if (res && res.retry && n < attempts) throw new Error('retry');
+        return res;
+      }).catch(function (err) {
+        if (n >= attempts) throw err;
+        var wait = 800 * Math.pow(2, n - 1) + Math.random() * 600;
+        return new Promise(function (ok) { setTimeout(ok, wait); }).then(function () { return tryOnce(n + 1); });
+      });
+    };
+    return tryOnce(1);
+  }
+  function fireAndForget(payload) {
+    try {
+      fetch(BACKEND_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload), keepalive: true }).catch(function () {});
+    } catch (e) {}
+  }
+
+  /* ---------- full screen ---------- */
+  function enterFs() {
+    var el = document.documentElement;
+    try {
+      var p = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : (el.webkitRequestFullscreen ? el.webkitRequestFullscreen() : null);
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
+  function inFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function exitFs() {
+    try { if (inFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+  }
+
+  /* ---------- local backup ---------- */
+  function lsKey() { return 'tp-quiz-' + S.token; }
+  function backupLocal() {
+    S.lastBackup = Date.now();
+    try { localStorage.setItem(lsKey(), JSON.stringify({ answers: S.answers, track: trackSnapshot() })); } catch (e) {}
+  }
+  function readLocal() { try { return JSON.parse(localStorage.getItem(lsKey()) || 'null'); } catch (e) { return null; } }
+  function clearLocal() { try { localStorage.removeItem(lsKey()); localStorage.removeItem('tp-last-usn'); } catch (e) {} }
+
+  /* ---------- per-question tracking ---------- */
+  function tq(id) {
+    return S.track.q[id] || (S.track.q[id] = { ms: 0, visits: 0, changes: 0, leaves: 0, awayMs: 0, flag: false });
+  }
+  function curId() { var q = S.questions[S.idx]; return q ? q.id : null; }
+  function startClock() { if (S.active && !S.submitting && !S.away && !S.curStart) S.curStart = Date.now(); }
+  function stopClock() {
+    if (S.curStart) { tq(curId()).ms += Date.now() - S.curStart; S.curStart = 0; }
+  }
+  function enterQuestion() {
+    var id = curId();
+    tq(id).visits++;
+    if (S.track.order.length < 300) S.track.order.push(id);
+    startClock();
+  }
+  /** Copy of the tracking data with the time on the current question included up to now. */
+  function trackSnapshot() {
+    var snap = JSON.parse(JSON.stringify(S.track));
+    var id = curId();
+    if (S.curStart && id) { snap.q[id] = snap.q[id] || tq(id); snap.q[id].ms += Date.now() - S.curStart; }
+    if (S.away) { snap.q[S.away.q] = snap.q[S.away.q] || tq(S.away.q); snap.q[S.away.q].awayMs += Date.now() - S.away.t; }
+    return snap;
+  }
+  function noteChange(id, val) {
+    var prev = S.committed[id];
+    if (prev !== undefined && prev !== '' && prev !== val) tq(id).changes++;
+    S.committed[id] = val;
+  }
+  function goAway() {
+    if (!S.active || S.submitting || S.away || Date.now() < S.armedAt) return;
+    stopClock();
+    S.away = { t: Date.now(), q: curId() };
+    tq(S.away.q).leaves++;
+    backupLocal();
+  }
+  function comeBack() {
+    if (!S.away) return;
+    var ms = Date.now() - S.away.t, q = S.away.q;
+    tq(q).awayMs += ms;
+    S.away = null;
+    if (S.active && !S.submitting) {
+      fireAndForget({ action: 'event', token: S.token, type: 'returned', q: q, detail: 'Away ' + (ms / 1000).toFixed(1) + ' s' });
+    }
+    startClock();
+    backupLocal();
+  }
+
+  /* ---------- start ---------- */
+  $('start-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var name = $('f-name').value.trim(), usn = $('f-usn').value.trim(), code = $('f-code').value.trim();
+    var errBox = $('start-error');
+    errBox.classList.add('hidden');
+    if (!name || !usn || !code) return showStartError('Please fill in your name, USN and the access code.');
+    if (!$('f-agree').checked) return showStartError('Please tick the declaration to continue.');
+    if (BACKEND_URL.indexOf('http') !== 0) return showStartError('This quiz has not been connected to its server yet. Please tell your instructor.');
+
+    enterFs();                         // must run inside the click
+    var btn = $('btn-start');
+    btn.disabled = true; btn.textContent = 'Opening the vault…';
+    api({ action: 'start', name: name, usn: usn, code: code }, 4).then(function (res) {
+      if (!res || !res.ok) {
+        exitFs();
+        btn.disabled = false; btn.textContent = 'Begin the heist';
+        return showStartError((res && res.error) || 'Could not start. Please try again.');
+      }
+      beginQuiz(res);
+    }).catch(function () {
+      exitFs();
+      btn.disabled = false; btn.textContent = 'Begin the heist';
+      showStartError('Could not reach the server. Check your internet connection and try again.');
+    });
+  });
+  function showStartError(msg) { var b = $('start-error'); b.textContent = msg; b.classList.remove('hidden'); }
+
+  function beginQuiz(res) {
+    S.token = res.token; S.name = res.name; S.usn = res.usn;
+    S.questions = res.questions; S.endsAt = res.endsAt; S.offset = res.serverNow - Date.now();
+    S.maxStrikes = res.maxViolations || 3; S.strikes = res.violations || 0;
+    var local = readLocal();
+    S.answers = Object.assign({}, res.saved || {}, (local && local.answers) || {});
+    var t = (local && local.track) || res.tracking || {};
+    S.track = { q: (t.q && typeof t.q === 'object') ? t.q : {}, order: Array.isArray(t.order) ? t.order : [] };
+    S.committed = Object.assign({}, S.answers);
+    try { localStorage.setItem('tp-last-usn', S.usn); } catch (e) {}
+
+    $('who').innerHTML = '';
+    $('who').appendChild(document.createTextNode(S.name + ' '));
+    var sp = document.createElement('span'); sp.textContent = S.usn; $('who').appendChild(sp);
+    $('strike-max').textContent = S.maxStrikes;
+    buildWatermark();
+    buildPalette();
+
+    $('screen-start').classList.add('hidden');
+    $('screen-quiz').classList.remove('hidden');
+    window.scrollTo(0, 0);
+    S.active = true;
+    S.armedAt = Date.now() + 1500;
+    updateStrikes();
+    render();
+    enterQuestion();
+    S.lastHeartbeat = Date.now();
+    tick(); S.timerId = setInterval(tick, 250);
+
+    if (!fsSupported) fireAndForget({ action: 'event', token: S.token, type: 'no-fullscreen', detail: navigator.userAgent.slice(0, 150) });
+    if (S.strikes >= S.maxStrikes) submit('auto: violation limit reached');
+  }
+
+  function buildWatermark() {
+    var wm = $('wm'); wm.innerHTML = '';
+    var label = S.name + ' · ' + S.usn;
+    for (var i = 0; i < 160; i++) { var s = document.createElement('span'); s.textContent = label; wm.appendChild(s); }
+  }
+
+  /* ---------- rendering ---------- */
+  function buildPalette() {
+    var p = $('palette'); p.innerHTML = '';
+    S.questions.forEach(function (q, i) {
+      var b = document.createElement('button');
+      b.className = 'pal'; b.textContent = i + 1; b.title = 'Lock ' + (i + 1);
+      b.addEventListener('click', function () { go(i); });
+      p.appendChild(b);
+    });
+  }
+  function refreshPalette() {
+    var btns = $('palette').children;
+    S.questions.forEach(function (q, i) {
+      var a = S.answers[q.id];
+      btns[i].className = 'pal' + (a !== undefined && a !== '' ? ' done' : '') + (i === S.idx ? ' cur' : '') +
+        (S.track.q[q.id] && S.track.q[q.id].flag ? ' flag' : '');
+    });
+  }
+
+  function render() {
+    var q = S.questions[S.idx];
+    var w = $('qwrap');
+    var html = '<div class="qnum">Lock ' + (S.idx + 1) + ' of ' + S.questions.length + '</div>' +
+      '<h2 class="qtitle">' + q.title + '</h2>' +
+      '<div class="qstory">' + q.story + '</div>' +
+      '<div class="qprompt">' + q.prompt + '</div>';
+    if (q.type === 'mcq') {
+      html += '<div class="opts" role="radiogroup">';
+      q.options.forEach(function (o, i) {
+        var sel = S.answers[q.id] === o.id;
+        html += '<label class="opt' + (sel ? ' sel' : '') + '" data-id="' + o.id + '">' +
+          '<input type="radio" name="opt" value="' + o.id + '"' + (sel ? ' checked' : '') + '>' +
+          '<span class="lbl">' + String.fromCharCode(65 + i) + '</span><span>' + o.text + '</span></label>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="numans"><input id="num" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="10" placeholder="Your answer">' +
+        '<span class="hint">Enter a whole number.</span></div>';
+    }
+    w.innerHTML = html;
+
+    if (q.type === 'mcq') {
+      Array.prototype.forEach.call(w.querySelectorAll('.opt input'), function (inp) {
+        inp.addEventListener('change', function () { noteChange(q.id, inp.value); setAnswer(q.id, inp.value); });
+      });
+    } else {
+      var num = $('num');
+      num.value = S.answers[q.id] !== undefined ? S.answers[q.id] : '';
+      num.addEventListener('input', function () {
+        var v = num.value.replace(/[^0-9\-]/g, '').replace(/(?!^)-/g, '');
+        if (v !== num.value) num.value = v;
+        setAnswer(q.id, v);
+      });
+      num.addEventListener('change', function () { noteChange(q.id, num.value); });
+    }
+    typeset(w);
+    $('btn-prev').disabled = S.idx === 0;
+    var last = S.idx === S.questions.length - 1;
+    $('btn-next').classList.toggle('hidden', last);
+    $('btn-finish').classList.toggle('hidden', !last);
+    var flagged = !!(S.track.q[q.id] && S.track.q[q.id].flag);
+    $('btn-mark').textContent = flagged ? 'Marked for review' : 'Mark for review';
+    $('btn-mark').classList.toggle('on', flagged);
+    refreshPalette();
+  }
+
+  function typeset(el) {
+    if (window.renderMathInElement) {
+      window.renderMathInElement(el, {
+        delimiters: [{ left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }],
+        throwOnError: false
+      });
+    } else {
+      setTimeout(function () { if (window.renderMathInElement) typeset(el); }, 300);
+    }
+  }
+
+  function setAnswer(id, val) {
+    if (val === '' || val === undefined) delete S.answers[id]; else S.answers[id] = val;
+    var q = S.questions[S.idx];
+    if (q.type === 'mcq') {
+      Array.prototype.forEach.call($('qwrap').querySelectorAll('.opt'), function (l) {
+        l.classList.toggle('sel', l.getAttribute('data-id') === val);
+      });
+    }
+    refreshPalette();
+    backupLocal();
+    clearTimeout(S.saveTimer);
+    S.saveTimer = setTimeout(saveRemote, 2500);
+  }
+  function saveRemote() {
+    clearTimeout(S.saveTimer);
+    S.lastHeartbeat = Date.now();
+    if (S.active && !S.submitting) fireAndForget({ action: 'save', token: S.token, answers: S.answers, tracking: trackSnapshot() });
+  }
+
+  function go(i) {
+    if (i < 0 || i >= S.questions.length || i === S.idx) return;
+    var num = $('num');
+    if (num && document.activeElement === num) noteChange(curId(), num.value);
+    stopClock();
+    saveRemote();
+    S.idx = i; render(); enterQuestion(); window.scrollTo(0, 0);
+  }
+  $('btn-prev').addEventListener('click', function () { go(S.idx - 1); });
+  $('btn-next').addEventListener('click', function () { go(S.idx + 1); });
+  $('btn-clear').addEventListener('click', function () {
+    var q = S.questions[S.idx];
+    noteChange(q.id, '');
+    setAnswer(q.id, '');
+    render();
+  });
+  $('btn-mark').addEventListener('click', function () {
+    var t = tq(curId());
+    t.flag = !t.flag;
+    render();
+    backupLocal();
+  });
+
+  /* ---------- timer ---------- */
+  function tick() {
+    if (!S.active) return;
+    var left = Math.max(0, S.endsAt - (Date.now() + S.offset));
+    var s = Math.ceil(left / 1000), m = Math.floor(s / 60), r = s % 60;
+    var t = $('timer');
+    t.textContent = (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+    t.className = 'timer' + (s <= 60 ? ' crit' : (s <= 300 ? ' low' : ''));
+    if (left <= 0) { submit('auto: time up'); return; }
+    var now = Date.now();
+    if (now - S.lastBackup > 5000) backupLocal();
+    if (now - S.lastHeartbeat > 60000) saveRemote();   // keeps time-per-question safe on the server too
+  }
+
+  /* ---------- violations ---------- */
+  function strike(type) {
+    if (!S.active || S.submitting) return;
+    var now = Date.now();
+    if (now < S.armedAt) return;
+    if (now - S.lastStrikeAt < 2000) return;   // one Alt-Tab fires several events; count it once
+    S.lastStrikeAt = now;
+    S.strikes++;
+    fireAndForget({ action: 'event', token: S.token, type: type, q: (S.away && S.away.q) || curId(),
+      detail: 'Warning ' + S.strikes + ' of ' + S.maxStrikes });
+    saveRemote();
+    updateStrikes();
+    if (S.strikes >= S.maxStrikes) { submit('auto: violation limit reached'); return; }
+    var what = { 'tab-hidden': 'You switched away from the quiz tab.', 'window-blur': 'You clicked or switched outside the quiz window.',
+                 'fullscreen-exit': 'You left full screen.' }[type] || 'You left the quiz.';
+    $('warn-title').textContent = 'Warning ' + S.strikes + ' of ' + S.maxStrikes;
+    $('warn-text').textContent = what + ' This has been recorded and reported to your instructor.';
+    $('ov-warn').classList.remove('hidden');
+  }
+  function updateStrikes() {
+    $('strike-n').textContent = S.strikes;
+    $('strikes').classList.toggle('hot', S.strikes > 0);
+  }
+  $('btn-resume').addEventListener('click', function () {
+    if (fsSupported) enterFs();
+    $('ov-warn').classList.add('hidden');
+    S.armedAt = Date.now() + 1200;
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { goAway(); strike('tab-hidden'); }
+    else if (document.hasFocus()) comeBack();
+  });
+  window.addEventListener('blur', function () { goAway(); strike('window-blur'); });
+  window.addEventListener('focus', function () { if (!document.hidden) comeBack(); });
+  function onFsChange() { if (fsSupported && !inFs()) strike('fullscreen-exit'); }
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+
+  /* ---------- lockdown ---------- */
+  ['contextmenu', 'copy', 'cut', 'paste', 'dragstart', 'drop'].forEach(function (evName) {
+    document.addEventListener(evName, function (e) { if (S.active || evName === 'contextmenu') e.preventDefault(); }, true);
+  });
+  document.addEventListener('selectstart', function (e) {
+    if (S.active && !(e.target && e.target.tagName === 'INPUT')) e.preventDefault();
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    if (!S.active) return;
+    var k = (e.key || '').toLowerCase();
+    var mod = e.ctrlKey || e.metaKey;
+    if (k === 'f12' || (mod && ['c', 'v', 'x', 'a', 'p', 's', 'u', 'f', 'g', 'o', 'h', 'j'].indexOf(k) !== -1) ||
+        (mod && e.shiftKey && ['i', 'j', 'c', 'k'].indexOf(k) !== -1)) {
+      e.preventDefault(); e.stopPropagation();
+    }
+  }, true);
+  document.addEventListener('keyup', function (e) {
+    if (S.active && e.key === 'PrintScreen') fireAndForget({ action: 'event', token: S.token, type: 'printscreen-key', q: curId(), detail: '' });
+  }, true);
+  window.addEventListener('beforeunload', function (e) {
+    if (S.active && !S.submitting) { saveRemote(); e.preventDefault(); e.returnValue = ''; }
+  });
+
+  /* ---------- submit ---------- */
+  $('btn-finish').addEventListener('click', openSubmit);
+  function openSubmit() {
+    var missing = [];
+    S.questions.forEach(function (q, i) { var a = S.answers[q.id]; if (a === undefined || a === '') missing.push(i + 1); });
+    $('submit-summary').textContent = missing.length === 0
+      ? 'You have answered all ' + S.questions.length + ' locks.'
+      : 'You have answered ' + (S.questions.length - missing.length) + ' of ' + S.questions.length + '. Unanswered: lock ' + missing.join(', ') + '.';
+    var marked = [];
+    S.questions.forEach(function (q, i) { if (S.track.q[q.id] && S.track.q[q.id].flag) marked.push(i + 1); });
+    if (marked.length) $('submit-summary').textContent += ' Marked for review: lock ' + marked.join(', ') + '.';
+    $('ov-submit').classList.remove('hidden');
+  }
+  $('btn-cancel-submit').addEventListener('click', function () { $('ov-submit').classList.add('hidden'); });
+  $('btn-confirm-submit').addEventListener('click', function () { submit('submitted by student'); });
+
+  function submit(reason) {
+    if (S.submitting) return;
+    var num = $('num');
+    if (num) noteChange(curId(), num.value);
+    stopClock();
+    if (S.away) { tq(S.away.q).awayMs += Date.now() - S.away.t; S.away = null; }
+    S.submitting = true;
+    clearTimeout(S.saveTimer);
+    $('ov-submit').classList.add('hidden');
+    $('ov-warn').classList.add('hidden');
+    showBusy('Submitting your answers', reason.indexOf('time') !== -1 ? 'Time is up. Sending your answers…'
+      : (reason.indexOf('violation') !== -1 ? 'Violation limit reached. Sending your answers…' : 'Sending your answers…'), false);
+    var payload = { action: 'submit', token: S.token, answers: S.answers, tracking: trackSnapshot(), reason: reason };
+    var send = function () {
+      api(payload, 5).then(function (res) {
+        if (!res || !res.ok) throw new Error((res && res.error) || 'failed');
+        finish(res);
+      }).catch(function () {
+        showBusy('Could not reach the server',
+          'Your answers are safe on this computer. Do not close this window. Check your internet connection, then press Try again. If it keeps failing, call your invigilator.', true);
+        $('btn-retry').onclick = function () { showBusy('Submitting your answers', 'Trying again…', false); send(); };
+      });
+    };
+    send();
+  }
+  function showBusy(title, text, retry) {
+    $('busy-title').textContent = title; $('busy-text').textContent = text;
+    $('busy-actions').classList.toggle('hidden', !retry);
+    $('ov-busy').classList.remove('hidden');
+  }
+  function finish(res) {
+    S.active = false;
+    clearInterval(S.timerId);
+    clearLocal();
+    exitFs();
+    $('ov-busy').classList.add('hidden');
+    $('screen-quiz').classList.add('hidden');
+    $('screen-done').classList.remove('hidden');
+    if (typeof res.score === 'number') { $('score-val').textContent = res.score; $('done-score').classList.remove('hidden'); }
+    $('done-id').textContent = 'Recorded for ' + S.name + ' (' + S.usn + ').';
+    window.scrollTo(0, 0);
+  }
+
+  /* prefill USN after a crash so resuming is quick */
+  try { var last = localStorage.getItem('tp-last-usn'); if (last) $('f-usn').value = last; } catch (e) {}
+})();
+</script>
+</body>
+</html>

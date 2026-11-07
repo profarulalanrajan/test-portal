@@ -1,0 +1,35 @@
+# ------------------------------------------------------------------
+# SAFETY: this repo is PUBLIC. Nothing that reveals answers or
+# student data may ever be committed. These patterns block the
+# usual mistakes even if someone runs `git add .`
+# ------------------------------------------------------------------
+
+# Backend code (contains the answer key) — lives only in Apps Script
+*.gs
+Code.*
+backend/
+private/
+answers/
+answer-key*
+
+# Question papers, answer keys, results, exports
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.csv
+*.json
+results/
+exports/
+
+# Secrets
+.env
+*.key
+secrets*
+
+# Editor / OS junk
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
