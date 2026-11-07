@@ -1,6 +1,6 @@
 # Test Portal — Prof. Arulalan Rajan
 
-Online tests for Prof. Arulalan Rajan's courses.
+Online tests for all of Prof. Arulalan Rajan's courses.
 
 **Live at:** https://profarulalanrajan.github.io/test-portal/
 
@@ -12,51 +12,94 @@ Online tests for Prof. Arulalan Rajan's courses.
 
 | Part | Where it lives | What it does |
 |---|---|---|
-| `index.html` | This repo → GitHub Pages | The page students open to take the test |
-| `Code.gs` | **Google Apps Script only** (attached to a Google Sheet on the professor's account) | Holds questions + answer key, grades, stores results |
-| Google Sheet | Professor's Google Drive | Results, per-question log, sessions, events |
+| `index.html` | This repo → GitHub Pages | Lists all tests: **Open now**, **Upcoming**, **Past**, filterable by course |
+| `test.html?id=…` | This repo → GitHub Pages | Runs whichever test is chosen |
+| `config.js` | This repo | Backend URL and display name. The only file that normally changes here |
+| `Code.gs` | **Google Apps Script only** | Serves tests, grades, records everything |
+| Google Sheet | Professor's Google Drive | **All tests, questions and answer keys**, plus all results |
 
-Students' browsers never receive the answer key.
+**Adding a test never needs a code change or a push to GitHub.** It's all done in the Google Sheet.
+Students' browsers never receive answers.
 
-## What gets recorded
+## The Google Sheet
 
-**Results** tab — one row per student:
-score, mark per question, **time spent on each question**, total time,
-**times left the screen**, **total time away**, violations, late / auto-submitted,
-resumes after a crash, **order the questions were visited in**, and a violation log
-showing which question the student was on each time.
+| Tab | Who writes it | What's in it |
+|---|---|---|
+| **Tests** | You | One row per test |
+| **Questions** | You | One row per question, linked to its test by Test ID |
+| **Results · ‹Test ID›** | Automatic, one tab per test | One row per student: score, marks and time per question, times left the screen, time away, violations, visit order |
+| **Question log** | Automatic | One row per student per question: answer, right/wrong, time, visits, answer changes, times left the screen, time away, marked for review |
+| **Sessions**, **Events** | Automatic | Who's writing, deadlines, and a timestamped log of everything, tagged with the question |
 
-**Question log** tab — one row per student per question:
-position shown to that student, answer given, correct answer, right/wrong/unanswered,
-**time on the question**, number of visits, **answer changes**,
-**times left the screen while on it**, **time away while on it**, marked for review.
+The Sheet gets a **Test Portal** menu with: *Check tests for mistakes*, *Apply changes now*,
+*Finalize unsubmitted sessions*, *Set up / repair tabs*.
 
-**Events** tab — timestamped log of every start, resume, violation, return
-(with how long the student was away) and submit, tagged with the question.
+### Tests tab columns
 
-## Setting up a test (first time)
+| Column | Example | Notes |
+|---|---|---|
+| Test ID | `LA-Q2` | Short, unique, no spaces. Appears in the link: `test.html?id=LA-Q2` |
+| Status | `draft` / `open` / `closed` | **draft** = hidden from the list, but you can preview it via its direct link |
+| Title | Eigen Escape | |
+| Course | Linear Algebra | Used for the course filter on the listing page |
+| Topics | Eigenvalues, diagonalisation | One line under the title |
+| Intro | `<p>Story…</p>` | Shown before starting. HTML and maths allowed |
+| Duration (min) | 30 | |
+| Access code | `EIGEN7` | Announce in class. Leave blank for no code |
+| Opens at / Closes at | 10 Nov 2026, 10:00 am | Optional. Before *Opens at* it shows as Upcoming; at *Closes at* everyone is cut off |
+| Max violations | 3 | The last one auto-submits |
+| Grace (s) | 60 | Network slack on the deadline |
+| Show score | yes / no | Show the score right after submitting |
+| Shuffle questions / options | yes / no | Default yes |
 
-1. Signed in as the professor's account, create a new **Google Sheet** (for example "Test Portal — Results").
-2. In the Sheet: **Extensions → Apps Script**. Delete what's there and paste in `Code.gs` (from the private folder, *not* from this repo).
-3. Pick `setup` in the function dropdown and click **Run**. Approve the permissions. Four tabs get created.
-4. **Deploy → New deployment → Web app**
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-   - Copy the **Web app URL**.
-5. In `index.html`, paste that URL into `BACKEND_URL` near the top of the `<script>`, then commit and push.
-6. Take the test yourself once with a dummy USN, check the Sheet, then delete that row from every tab.
+### Questions tab columns
 
-## Running a test
+| Column | Notes |
+|---|---|
+| Test ID | Must match a row in Tests |
+| Q ID | `Q1`, `Q2`… unique within the test |
+| Type | `mcq` or `numeric` |
+| Title | Optional heading for the question |
+| Story / Prompt | The question text. HTML and maths allowed |
+| Option A … F | MCQ only. Fill as many as you need |
+| Answer | MCQ: a letter (`B`). Numeric: a number (`2`, `3.14`) |
+| Marks | Default 1 |
+| Tolerance | Numeric only. `0.01` accepts 3.13–3.15 for an answer of 3.14 |
+| Explanation | For your reference; never sent to students |
 
-- Change `ACCESS_CODE` in Apps Script before each test, and announce it in class when students should start.
-- After editing `Code.gs`: **Deploy → Manage deployments → Edit → Version: New version → Deploy**.
-  (Keeps the same URL, so `index.html` doesn't need to change.)
-- To stop new starts: set `QUIZ_OPEN: false` and redeploy. Students already writing can still submit.
-- After the test: run `finalizeUnsubmitted` from the editor to grade anyone whose browser died without submitting.
+**Writing maths:** `\( x^2 \)` for inline and `\[ ... \]` or `$$ ... $$` for display, with **single** backslashes.
+
+## First-time setup
+
+1. Signed in as the professor's account, create a new **Google Sheet** called "Test Portal".
+2. **Extensions → Apps Script**. Delete what's there, paste in `Code.gs` (from the private folder), and save.
+3. Choose `setup` in the function dropdown, click **Run**, and approve the permissions.
+   The tabs are created, with *Operation Masala Dosa* filled in as the first test.
+4. **Deploy → New deployment → Web app**: Execute as **Me**, Who has access **Anyone**. Copy the Web app URL.
+5. Paste the URL into `config.js` on GitHub, then commit.
+6. Reload the Sheet so the **Test Portal** menu appears.
+
+## Adding a new test
+
+1. Add a row in **Tests** with Status `draft`.
+2. Add its questions in **Questions**.
+3. Run **Test Portal → Check tests for mistakes**.
+4. Preview it at `…/test-portal/test.html?id=YOUR-ID` with a dummy USN, then delete the dummy rows from the results tabs.
+5. Set Status to `open`, then run **Test Portal → Apply changes now**. (Otherwise changes show up within a minute.)
+
+## After a test
+
+- Run **Test Portal → Finalize unsubmitted sessions** to grade anyone whose browser died without submitting.
+  Tests that are still running are not touched.
+- Set Status to `closed`, or let *Closes at* do it.
+
+## Updating `Code.gs`
+
+Paste the new version in Apps Script and save, then go to **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**.
+The URL stays the same.
 
 ## Notes
 
-- MCQ letters in the Question log are the **paper** letters (A–D as printed in the question paper);
-  each student saw the options in a shuffled order.
+- MCQ letters in the Question log are the letters as written in the Questions tab; each student saw the options shuffled.
+- If you change a test's questions after students have submitted, rename its old `Results · ‹Test ID›` tab first so a fresh one is created.
 - Browser-based proctoring can't see a second device. Invigilate the room.
-- Use a fresh Sheet when the column layout changes. Old tabs keep their old headers.
